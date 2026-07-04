@@ -569,6 +569,58 @@
 
         window.onload = verificarSesion;
     </script>
+    <!-- MÓDULO DE GESTIÓN AVANZADA (Añadir antes de </body>) -->
+<section id="modulos-extra" class="p-8 grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+    <!-- Checklist Diario -->
+    <div class="bg-[#1e293b] p-6 rounded-2xl border border-slate-700 shadow-xl">
+        <h2 class="text-[#38bdf8] font-bold mb-4">✅ Checklist Diario</h2>
+        <div class="flex gap-2 mb-4">
+            <input type="text" id="input-tarea" placeholder="Nueva tarea..." class="flex-1 bg-[#0f172a] border border-slate-600 rounded-lg p-2 text-sm">
+            <button onclick="addTarea()" class="bg-[#38bdf8] text-[#0f172a] px-3 rounded-lg font-bold">+</button>
+        </div>
+        <div id="contenedor-tareas" class="space-y-2"></div>
+    </div>
+
+    <!-- Alertas Mantenimiento -->
+    <div class="bg-[#1e293b] p-6 rounded-2xl border border-slate-700 shadow-xl">
+        <h2 class="text-amber-400 font-bold mb-4">⚠️ Alertas Preventivas</h2>
+        <div id="contenedor-alertas" class="space-y-2 text-sm"></div>
+    </div>
+</section>
+
+<script>
+    // Lógica para Checklist
+    let misTareas = JSON.parse(localStorage.getItem('tareas_lab')) || [];
+    function addTarea() {
+        const val = document.getElementById('input-tarea').value;
+        if(val) { misTareas.push(val); localStorage.setItem('tareas_lab', JSON.stringify(misTareas)); renderTareas(); }
+    }
+    function renderTareas() {
+        document.getElementById('contenedor-tareas').innerHTML = misTareas.map((t, i) => `
+            <div class="flex justify-between bg-[#0f172a] p-2 rounded text-slate-300 text-sm">
+                ${t} <button onclick="misTareas.splice(${i},1); localStorage.setItem('tareas_lab', JSON.stringify(misTareas)); renderTareas();" class="text-red-400">✕</button>
+            </div>
+        `).join('');
+    }
+
+    // Lógica para Alertas (Detecta si un equipo en tu tabla principal supera 90 días)
+    function verificarMantenimientos() {
+        const al = document.getElementById('contenedor-alertas');
+        // Esto asume que tus filas tienen una clase o atributo con la fecha
+        const equipos = document.querySelectorAll('.fila-equipo'); 
+        al.innerHTML = '';
+        equipos.forEach(eq => {
+            const fecha = new Date(eq.dataset.fecha);
+            if((new Date() - fecha) / (1000*60*60*24) > 90) {
+                al.innerHTML += `<div class="p-2 border border-amber-500/50 bg-amber-500/10 rounded text-amber-200">⚠️ ${eq.dataset.nombre} requiere mantenimiento</div>`;
+            }
+        });
+    }
+
+    renderTareas();
+    // Ejecutar verificación tras cargar tu página
+    setTimeout(verificarMantenimientos, 1000);
+</script>
 </body>
 </html>
 </html></body>
