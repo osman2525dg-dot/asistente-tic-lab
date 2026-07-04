@@ -506,8 +506,8 @@
                     </div>
                     <div class="flex justify-between items-center pt-3 border-t border-slate-700/50">
                         <span class="text-xs font-bold ${rep.estado === 'Finalizado' ? 'text-emerald-400' : 'text-amber-400'}">${rep.estado === 'Finalizado' ? '✅ Resuelto' : '⏳ Pendiente'}</span>
-                        <div class="flex gap-3">
-                            <button onclick="eliminarReporte(${idx})" class="text-xs font-bold text-red-400 hover:text-red-300">Eliminar</button>
+                        <div class="flex items-center gap-3">
+                            <button onclick="eliminarReporte(${idx})" class="text-xs font-bold text-red-400 hover:text-red-500 underline">Eliminar</button>
                             <button onclick="descargarPDF(${idx})" class="text-xs font-bold text-[#38bdf8] hover:text-[#7dd3fc] transition">📄 Exportar PDF</button>
                         </div>
                     </div>
@@ -515,12 +515,13 @@
             `;
         }).join('');
 }
-        function eliminarReporte(index) {
-    if(confirm("¿Estás seguro de que deseas eliminar este reporte?")) {
+
+function eliminarReporte(index) {
+    if(confirm("¿Estás seguro de eliminar este registro?")) {
         reportes.splice(index, 1);
         localStorage.setItem('tic_reportes', JSON.stringify(reportes));
         renderizarReportes();
-        mostrarToast("Reporte eliminado correctamente");
+        mostrarToast("Registro eliminado");
     }
 }
 
