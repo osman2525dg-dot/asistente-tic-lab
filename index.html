@@ -201,6 +201,20 @@
                     </button>
                 </div>
             </div>
+            function renderizarReportes() {
+    const lista = document.getElementById('lista-reportes');
+    lista.innerHTML = reportes.map((r, i) => `
+        <div class="bg-card-custom p-4 rounded-xl border border-slate-700 flex justify-between items-center">
+            <div>
+                <h3 class="font-bold text-white">${r.id}</h3>
+                <p class="text-xs text-slate-400">${r.desc}</p>
+            </div>
+            <button onclick="eliminarReporte(${i})" class="text-red-400 hover:text-red-600 font-bold text-xs border border-red-500/30 px-3 py-1 rounded">
+                Eliminar
+            </button>
+        </div>
+    `).join('');
+}
 
             <!-- HISTORIAL -->
             <div class="space-y-4">
