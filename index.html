@@ -488,63 +488,68 @@
         }
 
         function renderizarReportes() {
-            const lista = document.getElementById('lista-reportes');
-            lista.innerHTML = reportes.length === 0 ? '<p class="text-xs text-slate-500">Sin reportes generados.</p>' : 
-                reportes.map((rep, idx) => {
-                    const bgPri = rep.prioridad === 'Crítica' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 
-                                  rep.prioridad === 'Alta' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-                    return `
-                        <div class="bg-[#0f172a] border border-slate-700 p-5 rounded-xl shadow-lg transition hover:border-slate-500">
-                            <div class="flex justify-between items-start mb-3">
-                                <span class="bg-[#38bdf8] text-[#0f172a] text-[10px] font-black px-2 py-1 rounded shadow">${rep.id}</span>
-                                <span class="text-[10px] px-2 py-1 rounded font-bold border ${bgPri}">${rep.prioridad}</span>
-                            </div>
-                            <p class="text-[11px] text-slate-400 mb-2">📅 ${rep.fecha} | 🗂️ ${rep.tipo}</p>
-                            <div class="space-y-1 mb-4">
-                                <p class="text-sm text-slate-200"><strong>Falla:</strong> ${rep.desc}</p>
-                                <p class="text-sm text-slate-400"><strong>Acción:</strong> ${rep.accion}</p>
-                            </div>
-                            <div class="flex justify-between items-center pt-3 border-t border-slate-700/50">
-                                <span class="text-xs font-bold ${rep.estado === 'Finalizado' ? 'text-emerald-400' : 'text-amber-400'}">${rep.estado === 'Finalizado' ? '✅ Resuelto' : '⏳ Pendiente'}</span>
-                                <button onclick="descargarPDF(${idx})" class="text-xs font-bold text-[#38bdf8] hover:text-[#7dd3fc] transition">📄 Exportar PDF</button>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-        }
-
-        function renderizarReportes() {
     const lista = document.getElementById('lista-reportes');
-    lista.innerHTML = reportes.length === 0 ? '<p class="text-xs text-slate-500">Sin reportes generados.</p>' :
-    reportes.map((rep, idx) => {
-        const bgPri = rep.prioridad === 'Crítica'? 'bg-red-500/20 text-red-400 border-red-500/30':
-        rep.prioridad === 'Alta'? 'bg-amber-500/20 text-amber-400 border-amber-500/30': 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-        return `
-        <div class="bg-[#0f172a] border border-slate-700 p-5 rounded-xl shadow-lg transition hover:border-slate-500">
-            <div class="flex justify-between items-start mb-3">
-                <span class="bg-[#38bdf8] text-[#0f172a] text-[10px] font-black px-2 py-1 rounded shadow">${rep.id}</span>
-                <span class="text-[10px] px-2 py-1 rounded font-bold border ${bgPri}">${rep.prioridad}</span>
-            </div>
-            <p class="text-[11px] text-slate-400 mb-2">${rep.fecha} | ${rep.tipo}</p>
-            <div class="space-y-1 mb-4">
-                <p class="text-sm text-slate-200"><strong>Falla:</strong> ${rep.desc}</p>
-                <p class="text-sm text-slate-400"><strong>Acción:</strong> ${rep.accion}</p>
-            </div>
-            <div class="flex justify-between items-center pt-3 border-t border-slate-700/50">
-                <button onclick="eliminarReporte(${idx})" class="text-xs text-red-400 hover:text-red-500 underline transition">Eliminar</button>
-                <button onclick="descargarPDF(${idx})" class="text-xs font-bold text-[#38bdf8] hover:text-[#7dd3fc] transition">Exportar PDF</button>
-            </div>
-        </div>`;
-    }).join('');
+    lista.innerHTML = reportes.length === 0 ? '<p class="text-xs text-slate-500">Sin reportes generados.</p>' : 
+        reportes.map((rep, idx) => {
+            const bgPri = rep.prioridad === 'Crítica' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 
+                        rep.prioridad === 'Alta' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+            return `
+                <div class="bg-[#0f172a] border border-slate-700 p-5 rounded-xl shadow-lg transition hover:border-slate-500">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="bg-[#38bdf8] text-[#0f172a] text-[10px] font-black px-2 py-1 rounded shadow">${rep.id}</span>
+                        <span class="text-[10px] px-2 py-1 rounded font-bold border ${bgPri}">${rep.prioridad}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mb-2">📅 ${rep.fecha} | 🗂️ ${rep.tipo}</p>
+                    <div class="space-y-1 mb-4">
+                        <p class="text-sm text-slate-200"><strong>Falla:</strong> ${rep.desc}</p>
+                        <p class="text-sm text-slate-400"><strong>Acción:</strong> ${rep.accion}</p>
+                    </div>
+                    <div class="flex justify-between items-center pt-3 border-t border-slate-700/50">
+                        <span class="text-xs font-bold ${rep.estado === 'Finalizado' ? 'text-emerald-400' : 'text-amber-400'}">${rep.estado === 'Finalizado' ? '✅ Resuelto' : '⏳ Pendiente'}</span>
+                        <div class="flex gap-3">
+                            <button onclick="eliminarReporte(${idx})" class="text-xs font-bold text-red-400 hover:text-red-300">Eliminar</button>
+                            <button onclick="descargarPDF(${idx})" class="text-xs font-bold text-[#38bdf8] hover:text-[#7dd3fc] transition">📄 Exportar PDF</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
 }
         function eliminarReporte(index) {
-    if(confirm("¿Seguro que quieres borrar este informe permanentemente?")) {
-        reportes.splice(index, 1); 
-        localStorage.setItem('tic_reportes', JSON.stringify(reportes)); 
+    if(confirm("¿Estás seguro de que deseas eliminar este reporte?")) {
+        reportes.splice(index, 1);
+        localStorage.setItem('tic_reportes', JSON.stringify(reportes));
         renderizarReportes();
-        mostrarToast("Informe eliminado correctamente");
+        mostrarToast("Reporte eliminado correctamente");
     }
 }
+
+        function descargarPDF(idx) {
+            const rep = reportes[idx];
+            mostrarToast('Generando PDF...', 'info');
+            const tempDiv = document.getElementById('pdf-template');
+            tempDiv.innerHTML = `
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #111;">
+                    <div style="border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
+                        <h2 style="color: #0056b3; margin: 0; font-size: 24px;">REPORTE TÉCNICO DE INCIDENCIA</h2>
+                        <p style="margin: 5px 0 0 0; color: #555; font-size: 12px;">Gestión de Infraestructura TIC</p>
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                        <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9; width: 30%;"><strong>ID Equipo:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${rep.id}</td></tr>
+                        <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Fecha:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${rep.fecha}</td></tr>
+                        <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Prioridad:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${rep.prioridad}</td></tr>
+                    </table>
+                    <h3 style="color: #333; font-size: 16px; margin-bottom: 5px;">Diagnóstico / Falla</h3>
+                    <div style="padding: 15px; border: 1px solid #ddd; background: #fff; margin-bottom: 20px;">${rep.desc}</div>
+                    <h3 style="color: #333; font-size: 16px; margin-bottom: 5px;">Acciones Ejecutadas</h3>
+                    <div style="padding: 15px; border: 1px solid #ddd; background: #fff; margin-bottom: 20px;">${rep.accion}</div>
+                    <div style="margin-top: 30px; text-align: center;"><p style="font-weight: bold; color: ${rep.estado === 'Finalizado' ? 'green' : 'orange'};">ESTADO ACTUAL: ${rep.estado.toUpperCase()}</p></div>
+                </div>
+            `;
+            tempDiv.classList.remove('hidden');
+            html2pdf().set({ margin: 10, filename: `Reporte_${rep.id}.pdf`, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } })
+            .from(tempDiv).save().then(() => { tempDiv.classList.add('hidden'); tempDiv.innerHTML = ''; mostrarToast('PDF descargado'); });
+        }
 
         // --- MÓDULO 3: WIKI (Sin cambios lógicos) ---
         function toggleFormWiki() { document.getElementById('form-nueva-solucion').classList.toggle('hidden'); }
