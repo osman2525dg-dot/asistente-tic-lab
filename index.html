@@ -3,121 +3,571 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGI Pro | Dashboard TIC</title>
+    <title>SGI - Dashboard TIC & Biblioteca</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Librería para generar PDFs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        body { background-color: #0f172a; }
+        body { background-color: #0f172a; scroll-behavior: smooth; }
         .bg-card-custom { background-color: #1e293b; }
         .fade-in { animation: fadeIn 0.4s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
-<body class="text-slate-100 font-sans min-h-screen flex flex-col md:flex-row">
+<body class="text-slate-100 font-sans min-h-screen flex flex-col md:flex-row overflow-hidden">
 
-    <aside class="hidden w-64 bg-card-custom border-r border-slate-700 md:flex flex-col p-6 space-y-8 h-screen sticky top-0">
-        <h2 class="text-[#38bdf8] font-black text-lg">SGI PRO | TIC</h2>
-        <nav class="space-y-3">
-            <button onclick="cambiarTab('home')" class="w-full text-left p-3 rounded-lg bg-[#38bdf8]/10 text-[#38bdf8] font-bold">🏠 Dashboard</button>
-            <button onclick="cambiarTab('inventario')" class="w-full text-left p-3 rounded-lg hover:bg-slate-800">📦 Inventario</button>
-            <button onclick="cambiarTab('reportes')" class="w-full text-left p-3 rounded-lg hover:bg-slate-800">📊 Reportes</button>
-        </nav>
+    <!-- CONTENEDOR DE NOTIFICACIONES (TOASTS) -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- PANTALLA DE LOGUEO -->
+    <div id="login-page" class="fixed inset-0 z-50 flex items-center justify-center bg-[#0f172a] p-4 backdrop-blur-sm bg-opacity-90">
+        <div class="w-full max-w-md bg-card-custom p-8 rounded-2xl border border-slate-700 shadow-[0_0_40px_rgba(56,189,248,0.15)] fade-in">
+            <div class="flex justify-center mb-4">
+                <div class="bg-[#38bdf8]/20 p-3 rounded-full border border-[#38bdf8]/40">
+                    <span class="text-3xl">⚙️</span>
+                </div>
+            </div>
+            <h2 class="text-2xl font-bold text-[#38bdf8] text-center mb-1">SGI Tecnológico</h2>
+            <p class="text-slate-400 text-xs text-center mb-6">Acceso Administrativo TIC</p>
+            
+            <div id="login-error" class="hidden bg-red-500/20 border border-red-500 text-red-400 p-3 rounded-lg mb-4 text-xs text-center font-medium">
+                Credenciales incorrectas. Verifique e intente de nuevo.
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Usuario</label>
+                    <input type="text" id="input-user" class="w-full bg-[#0f172a] border border-slate-600 rounded-lg p-3 text-slate-100 focus:outline-none focus:border-[#38bdf8] focus:ring-1 focus:ring-[#38bdf8] transition" placeholder="admin">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Contraseña</label>
+                    <input type="password" id="input-pass" class="w-full bg-[#0f172a] border border-slate-600 rounded-lg p-3 text-slate-100 focus:outline-none focus:border-[#38bdf8] focus:ring-1 focus:ring-[#38bdf8] transition" placeholder="••••••••">
+                </div>
+                <button onclick="intentarLogin()" class="w-full bg-gradient-to-r from-[#0284c7] to-[#38bdf8] hover:from-[#0369a1] hover:to-[#0284c7] text-white font-bold py-3 rounded-lg transition-all shadow-lg transform hover:scale-[1.02]">
+                    Ingresar al Sistema
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR (ESCRITORIO) -->
+    <aside class="hidden w-64 bg-card-custom border-r border-slate-700 md:flex flex-col justify-between shrink-0 h-screen sticky top-0">
+        <div class="p-6 space-y-8">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">💻</span>
+                <div>
+                    <h2 class="font-black text-lg text-[#38bdf8] tracking-wide">Panel TIC</h2>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-widest">Gestión de Redes</p>
+                </div>
+            </div>
+            <nav class="space-y-3">
+                <button onclick="cambiarTab('inventario')" id="btn-tab-inventario" class="w-full flex items-center gap-3 text-left p-3.5 rounded-xl font-bold text-sm transition bg-[#38bdf8] text-[#0f172a] shadow-[0_0_15px_rgba(56,189,248,0.3)]">
+                    <span>📦</span> Inventario Dinámico
+                </button>
+                <button onclick="cambiarTab('reportes')" id="btn-tab-reportes" class="w-full flex items-center gap-3 text-left p-3.5 rounded-xl font-bold text-sm transition hover:bg-slate-800 text-slate-300">
+                    <span>📊</span> Informes Técnicos
+                </button>
+                <button onclick="cambiarTab('wiki')" id="btn-tab-wiki" class="w-full flex items-center gap-3 text-left p-3.5 rounded-xl font-bold text-sm transition hover:bg-slate-800 text-slate-300">
+                    <span>📚</span> Base de Conocimiento
+                </button>
+                <button onclick="cambiarTab('config')" id="btn-tab-config" class="w-full flex items-center gap-3 text-left p-3.5 rounded-xl font-bold text-sm transition hover:bg-slate-800 text-slate-300">
+                    <span>⚙️</span> Configuración
+                </button>
+            </nav>
+        </div>
+        <div class="p-6 border-t border-slate-700/50 bg-slate-800/30">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-[#38bdf8] to-purple-500 flex items-center justify-center text-xs font-bold text-white shadow-lg">TIC</div>
+                <div class="text-xs">
+                    <p class="font-bold text-slate-200">Administrador</p>
+                    <p class="text-emerald-400 text-[10px] flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span> En línea</p>
+                </div>
+            </div>
+            <button onclick="logout()" class="w-full py-2 text-xs font-semibold text-red-400 hover:bg-red-500/10 rounded-lg transition border border-transparent hover:border-red-500/30">Cerrar Sesión</button>
+        </div>
     </aside>
 
-    <main class="flex-1 p-8 overflow-y-auto">
-        <section id="sec-home" class="grid grid-cols-1 md:grid-cols-2 gap-6 fade-in">
-            <div class="bg-card-custom p-6 rounded-2xl border border-slate-700">
-                <h2 class="font-bold text-[#38bdf8] mb-4">✅ Checklist Diario</h2>
-                <div class="flex gap-2 mb-4">
-                    <input type="text" id="nueva-tarea" class="flex-1 bg-[#0f172a] border border-slate-600 rounded-lg p-2 text-sm" placeholder="Tarea...">
-                    <button onclick="agregarTarea()" class="bg-[#38bdf8] text-[#0f172a] px-4 rounded-lg font-bold">+</button>
+    <!-- NAVEGACIÓN MÓVIL -->
+    <div class="md:hidden w-full bg-card-custom border-b border-slate-700 p-2 flex justify-around items-center sticky top-0 z-40 shadow-md">
+        <button onclick="cambiarTab('inventario')" id="mb-tab-inventario" class="p-2 rounded-lg text-xl bg-[#38bdf8] text-[#0f172a] shadow-md">📦</button>
+        <button onclick="cambiarTab('reportes')" id="mb-tab-reportes" class="p-2 rounded-lg text-xl text-slate-400">📊</button>
+        <button onclick="cambiarTab('wiki')" id="mb-tab-wiki" class="p-2 rounded-lg text-xl text-slate-400">📚</button>
+        <button onclick="cambiarTab('config')" id="mb-tab-config" class="p-2 rounded-lg text-xl text-slate-400">⚙️</button>
+        <button onclick="logout()" class="p-2 text-red-400 text-xl">🚪</button>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="flex-1 p-4 md:p-8 w-full overflow-y-auto h-screen custom-scrollbar pb-24 md:pb-8">
+        
+        <!-- SECCIÓN 1: INVENTARIO DINÁMICO (AÑADIR / QUITAR) -->
+        <section id="sec-inventario" class="space-y-6 fade-in max-w-5xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-slate-700 pb-4 gap-4">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-black text-white">Inventario de Hardware</h1>
+                    <p class="text-slate-400 text-sm mt-1">Gestión dinámica de equipos e infraestructura</p>
                 </div>
-                <div id="lista-checklist" class="space-y-2"></div>
+                <!-- Mini Dashboard Estadístico -->
+                <div class="flex gap-4 text-xs font-bold bg-[#0f172a] p-3 rounded-xl border border-slate-700">
+                    <div class="flex flex-col items-center"><span class="text-slate-400 uppercase text-[9px]">Total</span><span id="stat-total" class="text-lg text-white">0</span></div>
+                    <div class="w-px bg-slate-700"></div>
+                    <div class="flex flex-col items-center"><span class="text-emerald-400 uppercase text-[9px]">Operativos</span><span id="stat-op" class="text-lg text-emerald-400">0</span></div>
+                    <div class="w-px bg-slate-700"></div>
+                    <div class="flex flex-col items-center"><span class="text-red-400 uppercase text-[9px]">Fallas</span><span id="stat-fail" class="text-lg text-red-400">0</span></div>
+                </div>
             </div>
 
-            <div class="bg-card-custom p-6 rounded-2xl border border-slate-700">
-                <h2 class="font-bold text-amber-400 mb-4">⚠️ Alertas de Mantenimiento</h2>
-                <div id="lista-alertas" class="text-sm space-y-2"></div>
+            <!-- Formulario para Añadir Equipo Nuevo -->
+            <div class="bg-card-custom p-5 rounded-xl border border-slate-700 shadow-lg mb-6">
+                <h3 class="text-sm font-bold text-[#38bdf8] mb-4">➕ Registrar Nuevo Equipo</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                    <input type="text" id="inv-id" placeholder="ID / Nombre (Ej: PC-01, Router-Core)" class="bg-[#0f172a] border border-slate-600 p-2.5 rounded-lg text-sm text-slate-100 outline-none focus:border-[#38bdf8]">
+                    <select id="inv-tipo" class="bg-[#0f172a] border border-slate-600 p-2.5 rounded-lg text-sm text-slate-100 outline-none focus:border-[#38bdf8]">
+                        <option value="Computadora">🖥️ Computadora</option>
+                        <option value="Laptop">💻 Laptop</option>
+                        <option value="Red">🌐 Eq. de Red (Switch/Router)</option>
+                        <option value="Periferico">🖨️ Periférico / Impresora</option>
+                    </select>
+                    <input type="text" id="inv-ip" placeholder="IP / MAC (Opcional)" class="bg-[#0f172a] border border-slate-600 p-2.5 rounded-lg text-sm font-mono text-slate-300 outline-none focus:border-[#38bdf8]">
+                    <button onclick="agregarEquipo()" class="bg-[#38bdf8] hover:bg-[#0284c7] text-[#0f172a] hover:text-white font-bold py-2.5 rounded-lg transition-all shadow-lg">Añadir al Inventario</button>
+                </div>
+            </div>
+
+            <!-- Lista de Equipos -->
+            <div id="lista-equipos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Se inyecta con JS -->
             </div>
         </section>
 
-        <section id="sec-inventario" class="hidden fade-in space-y-6">
-            <div class="bg-card-custom p-6 rounded-2xl border border-slate-700">
-                <h2 class="font-bold text-white mb-4">Registrar Equipo</h2>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <input type="text" id="inv-id" placeholder="Nombre (Ej: PC-01)" class="bg-[#0f172a] border border-slate-600 p-2 rounded-lg text-sm">
-                    <input type="date" id="inv-fecha" class="bg-[#0f172a] border border-slate-600 p-2 rounded-lg text-sm">
-                    <button onclick="agregarEquipo()" class="bg-[#38bdf8] text-[#0f172a] font-bold rounded-lg">Guardar Equipo</button>
+        <!-- SECCIÓN 2: REPORTES Y PDF -->
+        <section id="sec-reportes" class="hidden space-y-6 fade-in max-w-5xl mx-auto">
+            <div class="border-b border-slate-700 pb-4">
+                <h1 class="text-2xl md:text-3xl font-black text-white">Informes Técnicos</h1>
+                <p class="text-slate-400 text-sm mt-1">Generación y exportación a PDF de incidencias</p>
+            </div>
+
+            <div class="bg-card-custom p-6 rounded-2xl border border-slate-700 shadow-xl space-y-5 relative overflow-hidden">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#38bdf8] opacity-5 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1.5 uppercase">ID Equipo</label>
+                        <input type="text" id="rep-id" class="w-full bg-[#0f172a] border border-slate-600 p-2.5 rounded-lg text-slate-100 text-sm focus:border-[#38bdf8] outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1.5 uppercase">Fecha</label>
+                        <input type="date" id="rep-fecha" class="w-full bg-[#0f172a] border border-slate-600 p-2.5 rounded-lg text-slate-100 text-sm focus:border-[#38bdf8] outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1.5 uppercase">Categoría</label>
+                        <select id="rep-tipo" class="w-full bg-[#0f172a] border border-slate-600 p-2.5 rounded-lg text-slate-100 text-sm focus:border-[#38bdf8] outline-none">
+                            <option value="Hardware">Hardware / Componentes</option>
+                            <option value="Software">Software / SO</option>
+                            <option value="Red">Redes / Conectividad</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1.5 uppercase">Diagnóstico / Falla</label>
+                        <textarea id="rep-desc" class="w-full bg-[#0f172a] border border-slate-600 p-3 rounded-lg text-slate-100 text-sm h-24 focus:border-[#38bdf8] outline-none resize-none" placeholder="Detalle el problema..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1.5 uppercase">Acción Ejecutada</label>
+                        <textarea id="rep-accion" class="w-full bg-[#0f172a] border border-slate-600 p-3 rounded-lg text-slate-100 text-sm h-24 focus:border-[#38bdf8] outline-none resize-none" placeholder="Reparación, limpieza..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2">
+                    <div class="flex gap-4 w-full sm:w-auto">
+                        <select id="rep-estado" class="bg-[#0f172a] border border-slate-600 p-2.5 rounded-lg text-sm font-semibold text-slate-200 outline-none w-full sm:w-auto">
+                            <option value="Finalizado">✅ Resuelto</option>
+                            <option value="Pendiente">⏳ En Proceso</option>
+                        </select>
+                        <select id="rep-prioridad" class="bg-[#0f172a] border border-slate-600 p-2.5 rounded-lg text-sm font-semibold text-slate-200 outline-none w-full sm:w-auto">
+                            <option value="Media">Prioridad Media</option>
+                            <option value="Alta">Prioridad Alta</option>
+                            <option value="Crítica">Prioridad Crítica</option>
+                        </select>
+                    </div>
+                    
+                    <button onclick="guardarReporte()" class="w-full sm:w-auto bg-[#38bdf8] hover:bg-[#0284c7] text-[#0f172a] hover:text-white font-bold px-8 py-3 rounded-lg transition-all shadow-[0_0_15px_rgba(56,189,248,0.4)]">
+                        Guardar Registro
+                    </button>
                 </div>
             </div>
-            <div id="lista-equipos" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+
+            <!-- HISTORIAL -->
+            <div class="space-y-4">
+                <h4 class="text-sm font-bold text-slate-300 flex items-center gap-2"><span>📂</span> Registros Recientes</h4>
+                <div id="lista-reportes" class="grid grid-cols-1 lg:grid-cols-2 gap-5"></div>
+            </div>
+            
+            <!-- PLANTILLA OCULTA PARA PDF -->
+            <div id="pdf-template" class="hidden bg-white text-black p-10 font-sans w-[800px]"></div>
         </section>
+
+        <!-- SECCIÓN 3: WIKI (BASE DE CONOCIMIENTO) -->
+        <section id="sec-wiki" class="hidden space-y-6 fade-in max-w-5xl mx-auto">
+             <div class="border-b border-slate-700 pb-4 flex justify-between items-end">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-black text-white">Base de Conocimiento</h1>
+                    <p class="text-slate-400 text-sm mt-1">Manuales, comandos y soluciones rápidas</p>
+                </div>
+                <button onclick="toggleFormWiki()" class="bg-[#38bdf8] text-slate-900 font-bold px-4 py-2 rounded-lg text-sm hover:bg-[#7dd3fc] transition shadow-md">+ Añadir Solución</button>
+            </div>
+
+            <div class="bg-card-custom p-2 rounded-xl border border-slate-600 flex items-center shadow-lg focus-within:border-[#38bdf8] transition-all">
+                <span class="text-slate-400 ml-3 text-lg">🔍</span>
+                <input type="text" id="wiki-search" oninput="renderizarWiki()" placeholder="Escribe para buscar procedimientos..." class="w-full bg-transparent p-3 text-slate-100 text-sm focus:outline-none">
+            </div>
+
+            <div id="form-nueva-solucion" class="hidden bg-slate-800/50 p-6 rounded-2xl border border-dashed border-[#38bdf8]/50 space-y-4 fade-in">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <input type="text" id="wiki-titulo" placeholder="Título del procedimiento" class="bg-[#0f172a] border border-slate-600 p-3 rounded-lg text-sm text-slate-100 outline-none focus:border-[#38bdf8]">
+                    <input type="text" id="wiki-cat" placeholder="Categoría (Ej: Redes, Hardware)" class="bg-[#0f172a] border border-slate-600 p-3 rounded-lg text-sm text-slate-100 outline-none focus:border-[#38bdf8]">
+                </div>
+                <textarea id="wiki-desc" placeholder="Descripción breve..." class="w-full bg-[#0f172a] border border-slate-600 p-3 rounded-lg text-sm text-slate-100 h-16 outline-none focus:border-[#38bdf8] resize-none"></textarea>
+                <textarea id="wiki-pasos" placeholder="1. Paso uno...&#10;2. Paso dos..." class="w-full bg-[#0f172a] border border-slate-600 p-3 rounded-lg text-sm text-slate-100 h-24 outline-none focus:border-[#38bdf8] resize-none"></textarea>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <input type="text" id="wiki-cmd" placeholder="Comando de consola (opcional)" class="bg-[#0f172a] border border-slate-600 p-3 rounded-lg text-sm font-mono text-emerald-400 outline-none focus:border-emerald-500">
+                    <input type="text" id="wiki-tags" placeholder="Etiquetas (ej: mantenimiento, software)" class="bg-[#0f172a] border border-slate-600 p-3 rounded-lg text-sm text-slate-100 outline-none focus:border-[#38bdf8]">
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button onclick="toggleFormWiki()" class="text-slate-400 hover:text-slate-200 px-4 py-2 rounded-lg text-sm font-semibold transition">Cancelar</button>
+                    <button onclick="guardarNuevaSolucion()" class="bg-emerald-500 text-slate-900 font-bold px-6 py-2 rounded-lg text-sm hover:bg-emerald-400 transition shadow-lg">Guardar en Wiki</button>
+                </div>
+            </div>
+
+            <div id="lista-wiki" class="space-y-5"></div>
+        </section>
+        
+        <!-- SECCIÓN 4: CONFIGURACIÓN Y SEGURIDAD -->
+        <section id="sec-config" class="hidden space-y-6 fade-in max-w-2xl mx-auto">
+            <div class="border-b border-slate-700 pb-4">
+                <h1 class="text-2xl md:text-3xl font-black text-white">Configuración del Sistema</h1>
+                <p class="text-slate-400 text-sm mt-1">Gestiona las credenciales de seguridad</p>
+            </div>
+
+            <div class="bg-card-custom p-6 rounded-2xl border border-slate-700 shadow-xl space-y-5">
+                <h3 class="text-lg font-bold text-[#38bdf8] mb-2 flex items-center gap-2"><span>🔐</span> Cambiar Contraseña de Acceso</h3>
+                <p class="text-xs text-slate-400 mb-4">Actualiza la contraseña para ingresar al Dashboard SGI.</p>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Nueva Contraseña</label>
+                        <input type="password" id="conf-pass1" class="w-full bg-[#0f172a] border border-slate-600 rounded-lg p-3 text-slate-100 focus:outline-none focus:border-[#38bdf8]" placeholder="Escribe tu nueva clave">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Confirmar Contraseña</label>
+                        <input type="password" id="conf-pass2" class="w-full bg-[#0f172a] border border-slate-600 rounded-lg p-3 text-slate-100 focus:outline-none focus:border-[#38bdf8]" placeholder="Repite la clave">
+                    </div>
+                    <button onclick="cambiarPassword()" class="w-full bg-[#38bdf8] hover:bg-[#0284c7] text-[#0f172a] hover:text-white font-bold py-3 rounded-lg transition-all shadow-lg mt-2">
+                        Actualizar Credenciales
+                    </button>
+                </div>
+                
+                <div class="mt-8 pt-6 border-t border-slate-700">
+                    <h3 class="text-sm font-bold text-red-400 mb-2">Zona de Peligro</h3>
+                    <button onclick="borrarTodoElSistema()" class="text-xs text-red-400 hover:text-red-300 underline">Borrar todos los datos locales (Inventario, Reportes, Wiki)</button>
+                </div>
+            </div>
+        </section>
+
     </main>
 
+    <!-- LOGICA JAVASCRIPT (SGI PRO) -->
     <script>
-        // --- BASE DE DATOS Y ESTADO ---
-        let inventario = JSON.parse(localStorage.getItem('sgi_inv')) || [];
-        let tareas = JSON.parse(localStorage.getItem('sgi_tareas')) || ['Verificar conexión'];
-
-        // --- FUNCIONES CHECKLIST ---
-        function agregarTarea() {
-            const t = document.getElementById('nueva-tarea').value;
-            if(t) { tareas.push(t); localStorage.setItem('sgi_tareas', JSON.stringify(tareas)); renderChecklist(); }
+        // --- SISTEMA DE TOASTS ---
+        function mostrarToast(mensaje, tipo = 'exito') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colorBg = tipo === 'exito' ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' : 
+                            tipo === 'error' ? 'bg-red-500/20 border-red-500/50 text-red-400' : 'bg-blue-500/20 border-blue-500/50 text-blue-400';
+            const icon = tipo === 'exito' ? '✅' : tipo === 'error' ? '⚠️' : 'ℹ️';
+            
+            toast.className = `${colorBg} border p-3 rounded-lg shadow-lg text-sm font-medium flex items-center gap-2 transform transition-all duration-300 translate-x-full opacity-0 backdrop-blur-md`;
+            toast.innerHTML = `<span>${icon}</span> <span>${mensaje}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.remove('translate-x-full', 'opacity-0'); }, 10);
+            setTimeout(() => {
+                toast.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
 
-        function renderChecklist() {
-            document.getElementById('lista-checklist').innerHTML = tareas.map((t, i) => `
-                <div class="flex justify-between bg-[#0f172a] p-2 rounded text-sm text-slate-300">
-                    ${t} <button onclick="tareas.splice(${i},1); renderChecklist();" class="text-red-400">✕</button>
+        // --- GESTIÓN DE CREDENCIALES (LOCALSTORAGE) ---
+        const USERNAME = "admin";
+        function obtenerPassword() {
+            return localStorage.getItem('sgi_password') || "admin123"; // Clave por defecto si no se ha cambiado
+        }
+
+        function cambiarPassword() {
+            const p1 = document.getElementById('conf-pass1').value;
+            const p2 = document.getElementById('conf-pass2').value;
+            if(!p1) { mostrarToast('La contraseña no puede estar vacía', 'error'); return; }
+            if(p1 !== p2) { mostrarToast('Las contraseñas no coinciden', 'error'); return; }
+            
+            localStorage.setItem('sgi_password', p1);
+            document.getElementById('conf-pass1').value = '';
+            document.getElementById('conf-pass2').value = '';
+            mostrarToast('Contraseña actualizada exitosamente. Úsala la próxima vez que inicies sesión.');
+        }
+
+        function borrarTodoElSistema() {
+            if(confirm("¿Estás seguro de borrar TODOS los datos del Dashboard? Esto no se puede deshacer.")) {
+                localStorage.clear();
+                window.location.reload();
+            }
+        }
+
+        // --- BASES DE DATOS LOCALES ---
+        let inventarioHardware = JSON.parse(localStorage.getItem('sgi_inventario')) || [];
+        let reportes = JSON.parse(localStorage.getItem('tic_reportes')) || [];
+        let wikiSoluciones = JSON.parse(localStorage.getItem('tic_wiki')) || [];
+
+        // --- CONTROL DE SESIÓN ---
+        function verificarSesion() {
+            if (sessionStorage.getItem('session_active') === 'true') {
+                document.getElementById('login-page').classList.add('hidden');
+                document.getElementById('rep-fecha').value = new Date().toISOString().substring(0, 10);
+                renderizarInventario();
+                renderizarReportes();
+                renderizarWiki();
+            } else {
+                document.getElementById('login-page').classList.remove('hidden');
+            }
+        }
+
+        function intentarLogin() {
+            const pIngresado = document.getElementById('input-pass').value;
+            if (document.getElementById('input-user').value === USERNAME && pIngresado === obtenerPassword()) {
+                sessionStorage.setItem('session_active', 'true');
+                document.getElementById('login-error').classList.add('hidden');
+                document.getElementById('input-pass').value = ''; // limpiar
+                mostrarToast("Acceso Concedido");
+                verificarSesion();
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        }
+
+        function logout() { sessionStorage.removeItem('session_active'); window.location.reload(); }
+
+        // --- NAVEGACIÓN ---
+        function cambiarTab(tab) {
+            ['inventario', 'reportes', 'wiki', 'config'].forEach(t => {
+                document.getElementById(`sec-${t}`).classList.add('hidden');
+                // Estilos Sidebar
+                const btn = document.getElementById(`btn-tab-${t}`);
+                if(btn) {
+                    btn.classList.remove('bg-[#38bdf8]', 'text-[#0f172a]', 'shadow-[0_0_15px_rgba(56,189,248,0.3)]');
+                    btn.classList.add('hover:bg-slate-800', 'text-slate-300');
+                }
+                // Estilos Móvil
+                const mbBtn = document.getElementById(`mb-tab-${t}`);
+                if(mbBtn) {
+                    mbBtn.classList.remove('bg-[#38bdf8]', 'text-[#0f172a]', 'shadow-md');
+                    mbBtn.classList.add('text-slate-400');
+                }
+            });
+
+            document.getElementById(`sec-${tab}`).classList.remove('hidden');
+            
+            // Activar actual
+            const activeBtn = document.getElementById(`btn-tab-${tab}`);
+            if(activeBtn) { activeBtn.classList.add('bg-[#38bdf8]', 'text-[#0f172a]', 'shadow-[0_0_15px_rgba(56,189,248,0.3)]'); activeBtn.classList.remove('hover:bg-slate-800', 'text-slate-300'); }
+            const activeMb = document.getElementById(`mb-tab-${tab}`);
+            if(activeMb) { activeMb.classList.add('bg-[#38bdf8]', 'text-[#0f172a]', 'shadow-md'); activeMb.classList.remove('text-slate-400'); }
+        }
+
+        // --- MÓDULO 1: INVENTARIO DINÁMICO (NUEVO) ---
+        function agregarEquipo() {
+            const id = document.getElementById('inv-id').value.trim();
+            const tipo = document.getElementById('inv-tipo').value;
+            const ip = document.getElementById('inv-ip').value.trim() || 'N/A';
+            
+            if(!id) { mostrarToast('El ID del equipo es obligatorio', 'error'); return; }
+            
+            inventarioHardware.push({ id, tipo, ip, estado: 'operativa' });
+            localStorage.setItem('sgi_inventario', JSON.stringify(inventarioHardware));
+            
+            document.getElementById('inv-id').value = '';
+            document.getElementById('inv-ip').value = '';
+            
+            mostrarToast('Equipo añadido al inventario');
+            renderizarInventario();
+        }
+
+        function cambiarEstadoEquipo(idx) {
+            const estados = ['operativa', 'revision', 'falla'];
+            let actual = inventarioHardware[idx].estado;
+            inventarioHardware[idx].estado = estados[(estados.indexOf(actual) + 1) % 3];
+            localStorage.setItem('sgi_inventario', JSON.stringify(inventarioHardware));
+            renderizarInventario();
+        }
+
+        function eliminarEquipo(idx) {
+            if(confirm(`¿Eliminar ${inventarioHardware[idx].id} del inventario?`)) {
+                inventarioHardware.splice(idx, 1);
+                localStorage.setItem('sgi_inventario', JSON.stringify(inventarioHardware));
+                mostrarToast('Equipo eliminado', 'info');
+                renderizarInventario();
+            }
+        }
+
+        function renderizarInventario() {
+            const lista = document.getElementById('lista-equipos');
+            
+            // Actualizar Estadísticas
+            const op = inventarioHardware.filter(e => e.estado === 'operativa').length;
+            const fail = inventarioHardware.filter(e => e.estado === 'falla').length;
+            document.getElementById('stat-total').innerText = inventarioHardware.length;
+            document.getElementById('stat-op').innerText = op;
+            document.getElementById('stat-fail').innerText = fail;
+
+            if (inventarioHardware.length === 0) {
+                lista.innerHTML = `<div class="col-span-full text-center text-slate-500 py-10 bg-card-custom rounded-xl border border-slate-700/50 border-dashed">Inventario vacío. Añade tu primer equipo arriba.</div>`;
+                return;
+            }
+
+            lista.innerHTML = inventarioHardware.map((eq, idx) => {
+                let bgStyle = eq.estado === 'operativa' ? 'border-emerald-500/40 bg-emerald-500/5' : 
+                              eq.estado === 'revision' ? 'border-amber-500/40 bg-amber-500/5' : 'border-red-500/40 bg-red-500/5';
+                
+                let icon = eq.tipo === 'Computadora' ? '🖥️' : eq.tipo === 'Laptop' ? '💻' : eq.tipo === 'Red' ? '🌐' : '🖨️';
+                let stateText = eq.estado === 'operativa' ? '<span class="text-emerald-400">✅ Operativo</span>' : 
+                                eq.estado === 'revision' ? '<span class="text-amber-400">🔧 Revisión</span>' : '<span class="text-red-400">❌ Falla</span>';
+
+                return `
+                    <div class="bg-card-custom border ${bgStyle} p-4 rounded-xl shadow-md relative group transition hover:shadow-lg">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="text-2xl">${icon}</span>
+                                <div>
+                                    <h3 class="font-black text-slate-100 tracking-wide">${eq.id}</h3>
+                                    <p class="text-[10px] text-slate-400 font-mono">${eq.ip}</p>
+                                </div>
+                            </div>
+                            <button onclick="eliminarEquipo(${idx})" class="text-slate-600 hover:text-red-400 transition opacity-0 group-hover:opacity-100" title="Eliminar equipo">🗑️</button>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-slate-700/50 flex justify-between items-center text-xs font-bold cursor-pointer" onclick="cambiarEstadoEquipo(${idx})" title="Clic para cambiar estado">
+                            ${stateText}
+                            <span class="text-slate-500 font-normal hover:text-[#38bdf8] transition text-[10px]">Cambiar Estado 🔄</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // --- MÓDULO 2: REPORTES Y PDF (Sin cambios lógicos) ---
+        function guardarReporte() {
+            const rep = {
+                id: document.getElementById('rep-id').value.trim() || 'General',
+                fecha: document.getElementById('rep-fecha').value,
+                tipo: document.getElementById('rep-tipo').value,
+                prioridad: document.getElementById('rep-prioridad').value,
+                desc: document.getElementById('rep-desc').value.trim(),
+                accion: document.getElementById('rep-accion').value.trim() || 'Sin acción',
+                estado: document.getElementById('rep-estado').value
+            };
+            if (!rep.desc) { mostrarToast('Añade una descripción', 'info'); return; }
+            reportes.unshift(rep);
+            localStorage.setItem('tic_reportes', JSON.stringify(reportes));
+            document.getElementById('rep-id').value = '';
+            document.getElementById('rep-desc').value = '';
+            document.getElementById('rep-accion').value = '';
+            mostrarToast("Informe guardado");
+            renderizarReportes();
+        }
+
+        function renderizarReportes() {
+            const lista = document.getElementById('lista-reportes');
+            lista.innerHTML = reportes.length === 0 ? '<p class="text-xs text-slate-500">Sin reportes generados.</p>' : 
+                reportes.map((rep, idx) => {
+                    const bgPri = rep.prioridad === 'Crítica' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 
+                                  rep.prioridad === 'Alta' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+                    return `
+                        <div class="bg-[#0f172a] border border-slate-700 p-5 rounded-xl shadow-lg transition hover:border-slate-500">
+                            <div class="flex justify-between items-start mb-3">
+                                <span class="bg-[#38bdf8] text-[#0f172a] text-[10px] font-black px-2 py-1 rounded shadow">${rep.id}</span>
+                                <span class="text-[10px] px-2 py-1 rounded font-bold border ${bgPri}">${rep.prioridad}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mb-2">📅 ${rep.fecha} | 🗂️ ${rep.tipo}</p>
+                            <div class="space-y-1 mb-4">
+                                <p class="text-sm text-slate-200"><strong>Falla:</strong> ${rep.desc}</p>
+                                <p class="text-sm text-slate-400"><strong>Acción:</strong> ${rep.accion}</p>
+                            </div>
+                            <div class="flex justify-between items-center pt-3 border-t border-slate-700/50">
+                                <span class="text-xs font-bold ${rep.estado === 'Finalizado' ? 'text-emerald-400' : 'text-amber-400'}">${rep.estado === 'Finalizado' ? '✅ Resuelto' : '⏳ Pendiente'}</span>
+                                <button onclick="descargarPDF(${idx})" class="text-xs font-bold text-[#38bdf8] hover:text-[#7dd3fc] transition">📄 Exportar PDF</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+        }
+
+        function descargarPDF(idx) {
+            const rep = reportes[idx];
+            mostrarToast('Generando PDF...', 'info');
+            const tempDiv = document.getElementById('pdf-template');
+            tempDiv.innerHTML = `
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #111;">
+                    <div style="border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
+                        <h2 style="color: #0056b3; margin: 0; font-size: 24px;">REPORTE TÉCNICO DE INCIDENCIA</h2>
+                        <p style="margin: 5px 0 0 0; color: #555; font-size: 12px;">Gestión de Infraestructura TIC</p>
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                        <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9; width: 30%;"><strong>ID Equipo:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${rep.id}</td></tr>
+                        <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Fecha:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${rep.fecha}</td></tr>
+                        <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Prioridad:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${rep.prioridad}</td></tr>
+                    </table>
+                    <h3 style="color: #333; font-size: 16px; margin-bottom: 5px;">Diagnóstico / Falla</h3>
+                    <div style="padding: 15px; border: 1px solid #ddd; background: #fff; margin-bottom: 20px;">${rep.desc}</div>
+                    <h3 style="color: #333; font-size: 16px; margin-bottom: 5px;">Acciones Ejecutadas</h3>
+                    <div style="padding: 15px; border: 1px solid #ddd; background: #fff; margin-bottom: 20px;">${rep.accion}</div>
+                    <div style="margin-top: 30px; text-align: center;"><p style="font-weight: bold; color: ${rep.estado === 'Finalizado' ? 'green' : 'orange'};">ESTADO ACTUAL: ${rep.estado.toUpperCase()}</p></div>
+                </div>
+            `;
+            tempDiv.classList.remove('hidden');
+            html2pdf().set({ margin: 10, filename: `Reporte_${rep.id}.pdf`, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } })
+            .from(tempDiv).save().then(() => { tempDiv.classList.add('hidden'); tempDiv.innerHTML = ''; mostrarToast('PDF descargado'); });
+        }
+
+        // --- MÓDULO 3: WIKI (Sin cambios lógicos) ---
+        function toggleFormWiki() { document.getElementById('form-nueva-solucion').classList.toggle('hidden'); }
+        function guardarNuevaSolucion() {
+            const titulo = document.getElementById('wiki-titulo').value.trim();
+            const desc = document.getElementById('wiki-desc').value.trim();
+            const pasos = document.getElementById('wiki-pasos').value.trim();
+            if (!titulo || !desc) { mostrarToast('Faltan datos en la wiki', 'info'); return; }
+            wikiSoluciones.unshift({ titulo, descripcion: desc, pasos, categoria: document.getElementById('wiki-cat').value || 'General', comando: document.getElementById('wiki-cmd').value });
+            localStorage.setItem('tic_wiki', JSON.stringify(wikiSoluciones));
+            mostrarToast('Solución registrada');
+            toggleFormWiki();
+            renderizarWiki();
+        }
+        function renderizarWiki() {
+            const query = document.getElementById('wiki-search').value.toLowerCase();
+            const filtrados = wikiSoluciones.filter(s => s.titulo.toLowerCase().includes(query) || s.descripcion.toLowerCase().includes(query));
+            document.getElementById('lista-wiki').innerHTML = filtrados.map(item => `
+                <div class="bg-[#0f172a] border border-slate-700 p-5 rounded-xl shadow-lg relative group">
+                    <span class="text-[10px] font-bold text-slate-400 border border-slate-700 px-2 py-0.5 rounded-full mb-2 inline-block">${item.categoria}</span>
+                    <h3 class="text-lg font-black text-white mb-1">${item.titulo}</h3>
+                    <p class="text-sm text-slate-300 mb-3">${item.descripcion}</p>
+                    <div class="bg-card-custom p-3 rounded-lg border border-slate-600/50 mb-3 text-sm text-slate-200 whitespace-pre-line">${item.pasos}</div>
+                    ${item.comando ? `<div class="bg-black text-emerald-400 font-mono text-xs p-3 rounded-lg flex justify-between items-center"><code>${item.comando}</code><button onclick="navigator.clipboard.writeText('${item.comando}'); mostrarToast('Comando copiado')" class="text-[#38bdf8] font-bold text-xs ml-2 hover:underline">Copiar</button></div>` : ''}
                 </div>
             `).join('');
         }
 
-        // --- FUNCIONES INVENTARIO Y ALERTAS ---
-        function agregarEquipo() {
-            const id = document.getElementById('inv-id').value;
-            const fecha = document.getElementById('inv-fecha').value;
-            inventario.push({ id, fecha });
-            localStorage.setItem('sgi_inv', JSON.stringify(inventario));
-            renderInventario();
-        }
-
-        function renderInventario() {
-            const lista = document.getElementById('lista-equipos');
-            const alertas = document.getElementById('lista-alertas');
-            lista.innerHTML = '';
-            alertas.innerHTML = '';
-
-            inventario.forEach((eq, i) => {
-                const esViejo = (new Date() - new Date(eq.fecha)) / (1000*60*60*24) > 90;
-                
-                // Tarjetas
-                lista.innerHTML += `
-                    <div class="bg-card-custom p-4 rounded-xl border ${esViejo ? 'border-amber-500' : 'border-slate-700'}">
-                        <h3 class="font-bold">${eq.id}</h3>
-                        <p class="text-xs text-slate-400">Último mtto: ${eq.fecha}</p>
-                        <button onclick="inventario.splice(${i},1); renderInventario();" class="text-red-400 text-xs mt-2">Eliminar</button>
-                    </div>
-                `;
-
-                // Alerta en el dashboard
-                if(esViejo) {
-                    alertas.innerHTML += `<div class="p-2 bg-amber-500/10 border border-amber-500/50 rounded text-amber-200">⚠️ ${eq.id} requiere mantenimiento!</div>`;
-                }
-            });
-        }
-
-        function cambiarTab(tab) {
-            document.getElementById('sec-home').classList.add('hidden');
-            document.getElementById('sec-inventario').classList.add('hidden');
-            document.getElementById('sec-' + tab).classList.remove('hidden');
-        }
-
-        // Inicializar
-        renderChecklist();
-        renderInventario();
+        window.onload = verificarSesion;
     </script>
 </body>
 </html>
