@@ -569,5 +569,14 @@
 
         window.onload = verificarSesion;
     </script>
+    // ... esto va dentro de tus etiquetas <script> actuales ...
+
+function eliminarReporte(index) {
+    if(confirm("¿Seguro que quieres borrar este informe?")) {
+        reportes.splice(index, 1); 
+        localStorage.setItem('tic_reportes', JSON.stringify(reportes)); 
+        renderizarReportes(); 
+    }
+}
 </body>
 </html>
