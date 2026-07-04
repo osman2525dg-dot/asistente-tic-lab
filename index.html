@@ -487,32 +487,20 @@
             renderizarReportes();
         }
 
-        function renderizarReportes() {
-            const lista = document.getElementById('lista-reportes');
-            lista.innerHTML = reportes.length === 0 ? '<p class="text-xs text-slate-500">Sin reportes generados.</p>' : 
-                reportes.map((rep, idx) => {
-                    const bgPri = rep.prioridad === 'Crítica' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 
-                                  rep.prioridad === 'Alta' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-                    return `
-                        <div class="bg-[#0f172a] border border-slate-700 p-5 rounded-xl shadow-lg transition hover:border-slate-500">
-                            <div class="flex justify-between items-start mb-3">
-                                <span class="bg-[#38bdf8] text-[#0f172a] text-[10px] font-black px-2 py-1 rounded shadow">${rep.id}</span>
-                                <span class="text-[10px] px-2 py-1 rounded font-bold border ${bgPri}">${rep.prioridad}</span>
-                            </div>
-                            <p class="text-[11px] text-slate-400 mb-2">📅 ${rep.fecha} | 🗂️ ${rep.tipo}</p>
-                            <div class="space-y-1 mb-4">
-                                <p class="text-sm text-slate-200"><strong>Falla:</strong> ${rep.desc}</p>
-                                <p class="text-sm text-slate-400"><strong>Acción:</strong> ${rep.accion}</p>
-                            </div>
-                            <div class="flex justify-between items-center pt-3 border-t border-slate-700/50">
-                                <span class="text-xs font-bold ${rep.estado === 'Finalizado' ? 'text-emerald-400' : 'text-amber-400'}">${rep.estado === 'Finalizado' ? '✅ Resuelto' : '⏳ Pendiente'}</span>
-                                <button onclick="descargarPDF(${idx})" class="text-xs font-bold text-[#38bdf8] hover:text-[#7dd3fc] transition">📄 Exportar PDF</button>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-        }
-
+       function renderizarReportes() {
+    const lista = document.getElementById('lista-reportes');
+    lista.innerHTML = reportes.map((r, i) => `
+        <div class="bg-card-custom p-4 rounded-xl border border-slate-700 flex justify-between items-center">
+            <div>
+                <h3 class="font-bold text-white">${r.id}</h3>
+                <p class="text-xs text-slate-400">${r.desc}</p>
+            </div>
+            <button onclick="eliminarReporte(${i})" class="text-red-400 hover:text-red-600 font-bold text-xs border border-red-500/30 px-3 py-1 rounded">
+                Eliminar
+            </button>
+        </div>
+    `).join('');
+}
         function descargarPDF(idx) {
             const rep = reportes[idx];
             mostrarToast('Generando PDF...', 'info');
@@ -568,6 +556,14 @@
         }
 
         window.onload = verificarSesion;
+        function eliminarReporte(index) {
+    if(confirm("¿Estás seguro de eliminar este registro?")) {
+        reportes.splice(index, 1);
+        localStorage.setItem('tic_reportes', JSON.stringify(reportes));
+        renderizarReportes();
+        mostrarToast("Registro eliminado");
+    }
+}
     </script>
 </body>
 </html>
