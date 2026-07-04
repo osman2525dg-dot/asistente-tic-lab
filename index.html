@@ -3,20 +3,418 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestión Integral</title>
+    <title>Sistema de Gestión Integral - Dashboard TIC & Biblioteca</title>
+    <!-- Tailwind CSS para el diseño profesional Dark Mode -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background-color: #f4f4f4; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h1 { color: #1a5f7a; margin-bottom: 10px; }
-        p { color: #555; font-size: 1.1em; }
-        .badge { display: inline-block; background: #e0f2fe; color: #0369a1; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.9em; }
+        /* Ajuste personalizado para el fondo oscuro industrial */
+        body { background-color: #0f172a; }
+        .bg-card-custom { background-color: #1e293b; }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>Sistema de Gestión Integral</h1>
-        <div class="badge">Área Tecnológica & Biblioteca</div>
-        <p>Panel centralizado para el control de infraestructura, inventario y recursos del espacio.</p>
+<body class="text-slate-100 font-sans min-h-screen flex flex-col md:flex-row">
+
+    <!-- 1. PANTALLA DE LOGUEO (MIDDLEWARE SIMULADO) -->
+    <div id="login-page" class="fixed inset-0 z-50 flex items-center justify-center bg-[#0f172a] p-4">
+        <div class="w-full max-w-md bg-card-custom p-8 rounded-xl border border-slate-700 shadow-2xl">
+            <h2 class="text-2xl font-bold text-[#38bdf8] text-center mb-1">Gestión Integral</h2>
+            <p class="text-slate-400 text-xs text-center mb-6">Área Tecnológica & Biblioteca</p>
+            
+            <div id="login-error" class="hidden bg-red-500/20 border border-red-500 text-red-400 p-3 rounded mb-4 text-xs text-center">
+                Credenciales de administrador incorrectas.
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Usuario</label>
+                    <input type="text" id="input-user" class="w-full bg-[#0f172a] border border-slate-700 rounded p-2.5 text-slate-100 focus:outline-none focus:border-[#38bdf8]" placeholder="admin">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Contraseña</label>
+                    <input type="password" id="input-pass" class="w-full bg-[#0f172a] border border-slate-700 rounded p-2.5 text-slate-100 focus:outline-none focus:border-[#38bdf8]" placeholder="••••••••">
+                </div>
+                <button onclick="intentarLogin()" class="w-full bg-[#38bdf8] hover:bg-[#7dd3fc] text-[#0f172a] font-bold py-2.5 rounded transition shadow-lg">
+                    Iniciar Sesión
+                </button>
+            </div>
+        </div>
     </div>
+
+    <!-- 2. SIDEBAR COLAPSABLE (SÓLO MD Y SUPERIOR) Y MENÚ MÓVIL -->
+    <aside id="sidebar" class="hidden w-64 bg-card-custom border-r border-slate-700 p-5 md:flex flex-col justify-between shrink-0">
+        <div class="space-y-6">
+            <div>
+                <h2 class="font-bold text-lg text-[#38bdf8]">Panel Central</h2>
+                <p class="text-xs text-slate-400">Infraestructura & Recursos</p>
+            </div>
+            <nav class="space-y-2">
+                <button onclick="cambiarTab('reportes')" id="btn-tab-reportes" class="w-full text-left p-3 rounded-lg font-medium text-sm transition bg-[#38bdf8] text-[#0f172a]">
+                    📊 Informes Técnicos
+                </button>
+                <button onclick="cambiarTab('wiki')" id="btn-tab-wiki" class="w-full text-left p-3 rounded-lg font-medium text-sm transition hover:bg-slate-800 text-slate-300">
+                    📚 Biblioteca Wiki
+                </button>
+            </nav>
+        </div>
+        <div class="text-center pt-4 border-t border-slate-700">
+            <button onclick="logout()" class="text-xs text-red-400 hover:underline">Cerrar Sesión</button>
+        </div>
+    </aside>
+
+    <!-- NAVEGACIÓN MÓVIL (VISIBLE EN TELÉFONOS) -->
+    <div class="md:hidden w-full bg-card-custom border-b border-slate-700 p-3 flex justify-around sticky top-0 z-40">
+        <button onclick="cambiarTab('reportes')" id="mb-tab-reportes" class="px-4 py-2 rounded-lg text-xs font-bold bg-[#38bdf8] text-[#0f172a]">Reportes</button>
+        <button onclick="cambiarTab('wiki')" id="mb-tab-wiki" class="px-4 py-2 rounded-lg text-xs font-bold text-slate-300">Biblioteca Wiki</button>
+        <button onclick="logout()" class="px-2 py-2 text-xs text-red-400">Salir</button>
+    </div>
+
+    <!-- 3. CONTENIDO PRINCIPAL -->
+    <main class="flex-1 p-4 md:p-8 max-w-5xl mx-auto w-full space-y-6 overflow-y-auto">
+        
+        <!-- SECCIÓN: GENERADOR DE REPORTES -->
+        <section id="sec-reportes" class="space-y-6">
+            <div class="bg-card-custom p-6 rounded-xl border border-slate-700 shadow-xl space-y-4">
+                <h3 class="text-lg font-bold text-[#38bdf8]">Generador de Informes Técnicos / Fallas</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">ID Equipo / Ubicación</label>
+                        <input type="text" id="rep-id" class="w-full bg-[#0f172a] border border-slate-700 p-2.5 rounded text-slate-100 text-sm focus:outline-none focus:border-[#38bdf8]" placeholder="Ej: PC-04 / Estante-B">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Fecha</label>
+                        <input type="date" id="rep-fecha" class="w-full bg-[#0f172a] border border-slate-700 p-2.5 rounded text-slate-100 text-sm focus:outline-none focus:border-[#38bdf8]">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Tipo de Falla</label>
+                        <select id="rep-tipo" class="w-full bg-[#0f172a] border border-slate-700 p-2.5 rounded text-slate-100 text-sm focus:outline-none">
+                            <option value="Hardware">Hardware</option>
+                            <option value="Software">Software</option>
+                            <option value="Red">Red</option>
+                            <option value="Infraestructura">Infraestructura / Libros</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Prioridad</label>
+                        <select id="rep-prioridad" class="w-full bg-[#0f172a] border border-slate-700 p-2.5 rounded text-slate-100 text-sm focus:outline-none">
+                            <option value="Baja">Baja</option>
+                            <option value="Media" selected>Media</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Crítica">Crítica</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Descripción de la Falla</label>
+                    <textarea id="rep-desc" class="w-full bg-[#0f172a] border border-slate-700 p-2.5 rounded text-slate-100 text-sm h-20 focus:outline-none" placeholder="¿Qué sucede con el equipo o recurso?"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Acción Ejecutada</label>
+                    <textarea id="rep-accion" class="w-full bg-[#0f172a] border border-slate-700 p-2.5 rounded text-slate-100 text-sm h-20 focus:outline-none" placeholder="¿Qué solución técnica aplicaste?"></textarea>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    <label class="text-xs text-slate-400">Estado Inicial:</label>
+                    <select id="rep-estado" class="bg-[#0f172a] border border-slate-700 p-1.5 rounded text-xs">
+                        <option value="Pendiente">❌ Pendiente</option>
+                        <option value="Finalizado" selected>✅ Finalizado</option>
+                    </select>
+                </div>
+                
+                <button onclick="guardarReporte()" class="w-full md:w-auto bg-[#38bdf8] hover:bg-[#7dd3fc] text-[#0f172a] font-bold px-6 py-2.5 rounded-lg transition shadow-md text-sm">
+                    Generar Reporte
+                </button>
+            </div>
+
+            <!-- HISTORIAL DE REPORTES -->
+            <div class="space-y-4">
+                <h4 class="text-xs font-semibold tracking-wider uppercase text-slate-400">Historial de Reportes (Vista Previa Elegante)</h4>
+                <div id="lista-reportes" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Skeletons o tarjetas cargadas dinámicamente -->
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN: WIKI / SOLUCIONES -->
+        <section id="sec-wiki" class="hidden space-y-6">
+            <!-- Buscador Dinámico -->
+            <div class="bg-card-custom p-4 rounded-xl border border-slate-700 flex items-center shadow-md">
+                <span class="text-slate-400 mr-3">🔍</span>
+                <input type="text" id="wiki-search" oninput="renderizarWiki()" placeholder="Buscar soluciones por título o etiquetas (ej: docker, git)..." class="w-full bg-transparent text-slate-100 text-sm focus:outline-none">
+            </div>
+
+            <!-- Formulario Rápido Oculto para Añadir Nueva Solución -->
+            <div id="form-nueva-solucion" class="hidden bg-card-custom p-5 rounded-xl border border-slate-600 space-y-3">
+                <h4 class="text-sm font-bold text-[#38bdf8]">Añadir Nueva Solución a la Wiki</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input type="text" id="wiki-titulo" placeholder="Título de la solución" class="bg-[#0f172a] border border-slate-700 p-2 rounded text-xs text-slate-100">
+                    <input type="text" id="wiki-cat" placeholder="Categoría (Ej: Redes, Libros, Docker)" class="bg-[#0f172a] border border-slate-700 p-2 rounded text-xs text-slate-100">
+                </div>
+                <textarea id="wiki-desc" placeholder="Descripción breve..." class="w-full bg-[#0f172a] border border-slate-700 p-2 rounded text-xs text-slate-100 h-12"></textarea>
+                <textarea id="wiki-pasos" placeholder="Paso 1...\nPaso 2..." class="w-full bg-[#0f172a] border border-slate-700 p-2 rounded text-xs text-slate-100 h-16"></textarea>
+                <input type="text" id="wiki-cmd" placeholder="Comando de consola opcional" class="w-full bg-[#0f172a] border border-slate-700 p-2 rounded text-xs font-mono text-emerald-400">
+                <input type="text" id="wiki-tags" placeholder="Etiquetas separadas por comas (ej: red, pc, canaima)" class="w-full bg-[#0f172a] border border-slate-700 p-2 rounded text-xs text-slate-100">
+                <div class="flex space-x-2">
+                    <button onclick="guardarNuevaSolucion()" class="bg-emerald-500 text-slate-900 font-bold px-3 py-1.5 rounded text-xs hover:bg-emerald-400">Guardar</button>
+                    <button onclick="toggleFormWiki()" class="bg-slate-700 text-slate-200 px-3 py-1.5 rounded text-xs hover:bg-slate-600">Cancelar</button>
+                </div>
+            </div>
+
+            <!-- Lista de Soluciones -->
+            <div id="lista-wiki" class="space-y-4">
+                <!-- Se inyecta dinámicamente -->
+            </div>
+
+            <!-- Botón flotante para añadir solución -->
+            <button onclick="toggleFormWiki()" class="fixed bottom-6 right-6 bg-[#38bdf8] hover:bg-[#7dd3fc] text-[#0f172a] w-12 h-12 rounded-full flex items-center justify-center font-bold text-2xl shadow-2xl transition transform hover:scale-110 z-30">
+                +
+            </button>
+        </section>
+
+    </main>
+
+    <!-- INTERACTIVIDAD CON JAVASCRIPT (LÓGICA SENIOR) -->
+    <script>
+        // Simulación de Variables de Entorno Seguras (Para el entorno local)
+        const ADMIN_USER = "admin";
+        const ADMIN_PASS = "UCV_Tecnico2026";
+
+        // Inicializar Datos desde LocalStorage para que no se pierda nada
+        let reportes = JSON.parse(localStorage.getItem('tic_reportes')) || [];
+        let wikiSoluciones = JSON.parse(localStorage.getItem('tic_wiki')) || [
+            {
+                titulo: "Sincronizar Cambios de Servidor Local",
+                categoria: "Servidor / Git",
+                descripcion: "Bajar la última versión estable del Dashboard general desde GitHub sin romper producción.",
+                pasos: "1. Entrar al directorio del proyecto en la Canaima.\n2. Ejecutar la sincronización limpia.",
+                comando: "cd ~/asistente-tic-lab && git pull",
+                tags: ["canaima", "git", "servidor"]
+            },
+            {
+                titulo: "Reiniciar Contenedor de Archivos",
+                categoria: "Docker / Infraestructura",
+                descripcion: "Solventar bloqueos en el contenedor FileBrowser si expira la sesión de administración.",
+                pasos: "1. Detener el contenedor colgado.\n2. Volver a levantar la instancia.",
+                comando: "sudo docker stop big-bear-filebrowser && sudo docker start big-bear-filebrowser",
+                tags: ["docker", "filebrowser", "mantenimiento"]
+            }
+        ];
+
+        // 1. CONTROL DE ACCESO (MIDDLEWARE LOCAL)
+        function verificarSesion() {
+            if (sessionStorage.getItem('session_active') === 'true') {
+                document.getElementById('login-page').classList.add('hidden');
+                // Colocar fecha de hoy por defecto en el formulario de reportes
+                document.getElementById('rep-fecha').valueToDate = new Date();
+                document.getElementById('rep-fecha').value = new Date().toISOString().substring(0, 10);
+                renderizarReportes();
+                renderizarWiki();
+            } else {
+                document.getElementById('login-page').classList.remove('hidden');
+            }
+        }
+
+        function intentarLogin() {
+            const u = document.getElementById('input-user').value;
+            const p = document.getElementById('input-pass').value;
+            const err = document.getElementById('login-error');
+
+            if (u === ADMIN_USER && p === ADMIN_PASS) {
+                sessionStorage.setItem('session_active', 'true');
+                err.classList.add('hidden');
+                verificarSesion();
+            } else {
+                err.classList.remove('hidden');
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('session_active');
+            window.location.reload();
+        }
+
+        // 2. CONTROL DE PANELES (TABS)
+        function cambiarTab(tab) {
+            const secRep = document.getElementById('sec-reportes');
+            const secWiki = document.getElementById('sec-wiki');
+            const btnRep = document.getElementById('btn-tab-reportes');
+            const btnWiki = document.getElementById('btn-tab-wiki');
+            const mbRep = document.getElementById('mb-tab-reportes');
+            const mbWiki = document.getElementById('mb-tab-wiki');
+
+            if (tab === 'reportes') {
+                secRep.classList.remove('hidden');
+                secWiki.classList.add('hidden');
+                
+                // Estilos activos Sidebar
+                btnRep.className = "w-full text-left p-3 rounded-lg font-medium text-sm transition bg-[#38bdf8] text-[#0f172a]";
+                btnWiki.className = "w-full text-left p-3 rounded-lg font-medium text-sm transition hover:bg-slate-800 text-slate-300";
+                // Estilos activos Móvil
+                mbRep.className = "px-4 py-2 rounded-lg text-xs font-bold bg-[#38bdf8] text-[#0f172a]";
+                mbWiki.className = "px-4 py-2 rounded-lg text-xs font-bold text-slate-300";
+            } else {
+                secRep.classList.add('hidden');
+                secWiki.classList.remove('hidden');
+                
+                // Estilos activos Sidebar
+                btnRep.className = "w-full text-left p-3 rounded-lg font-medium text-sm transition hover:bg-slate-800 text-slate-300";
+                btnWiki.className = "w-full text-left p-3 rounded-lg font-medium text-sm transition bg-[#38bdf8] text-[#0f172a]";
+                // Estilos activos Móvil
+                mbRep.className = "px-4 py-2 rounded-lg text-xs font-bold text-slate-300";
+                mbWiki.className = "px-4 py-2 rounded-lg text-xs font-bold bg-[#38bdf8] text-[#0f172a]";
+            }
+        }
+
+        // 3. MÓDULO REPORTES: LÓGICA Y RENDER
+        function guardarReporte() {
+            const id = document.getElementById('rep-id').value.trim();
+            const fecha = document.getElementById('rep-fecha').value;
+            const tipo = document.getElementById('rep-tipo').value;
+            const prioridad = document.getElementById('rep-prioridad').value;
+            const desc = document.getElementById('rep-desc').value.trim();
+            const accion = document.getElementById('rep-accion').value.trim();
+            const estado = document.getElementById('rep-estado').value;
+
+            if (!id || !fecha || !desc) {
+                alert('Por favor rellena los campos principales (ID, Fecha y Descripción).');
+                return;
+            }
+
+            const nuevoReporte = { id, fecha, tipo, prioridad, desc, accion, estado };
+            reportes.unshift(nuevoReporte); // Al inicio
+            localStorage.setItem('tic_reportes', JSON.stringify(reportes));
+
+            // Limpiar campos básicos
+            document.getElementById('rep-id').value = '';
+            document.getElementById('rep-desc').value = '';
+            document.getElementById('rep-accion').value = '';
+
+            renderizarReportes();
+        }
+
+        function renderizarReportes() {
+            const lista = document.getElementById('lista-reportes');
+            if (reportes.length === 0) {
+                lista.innerHTML = `<p class="text-xs text-slate-500 col-span-2">No hay reportes generados todavía.</p>`;
+                return;
+            }
+
+            lista.innerHTML = reportes.map((rep, idx) => {
+                const colorPrioridad = rep.prioridad === 'Crítica' ? 'bg-red-500/20 text-red-400' : 
+                                       rep.prioridad === 'Alta' ? 'bg-amber-500/20 text-amber-400' : 'bg-slate-800 text-slate-400';
+                return `
+                    <div class="bg-card-custom border border-slate-700 p-4 rounded-xl flex flex-col justify-between shadow-md">
+                        <div>
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wide bg-slate-900 text-[#38bdf8] px-2.5 py-0.5 rounded border border-slate-700">${rep.id}</span>
+                                <span class="text-xs px-2 py-0.5 rounded font-semibold ${colorPrioridad}">${rep.prioridad}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mb-2">${rep.fecha} | Área: ${rep.tipo}</p>
+                            <p class="text-sm text-slate-200 mb-1"><strong>Falla:</strong> ${rep.desc}</p>
+                            <p class="text-sm text-slate-300 mb-3"><strong>Acción:</strong> ${rep.accion || 'Ninguna registrada'}</p>
+                        </div>
+                        <div class="flex justify-between items-center pt-2.5 border-t border-slate-700/60">
+                            <span class="text-xs">${rep.estado === 'Finalizado' ? '✅ Finalizado' : '❌ Pendiente'}</span>
+                            <button onclick="copiarTextoReporte(${idx})" class="text-xs text-[#38bdf8] hover:underline font-medium">📋 Copiar Formato</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function copiarTextoReporte(idx) {
+            const rep = reportes[idx];
+            const texto = `📋 INFORME TÉCNICO GENERAL\n📍 Ubicación/ID: ${rep.id}\n📅 Fecha: ${rep.fecha}\n⚠️ Falla: [${rep.tipo}] - Prioridad: ${rep.prioridad}\n📝 Descripción: ${rep.desc}\n🛠️ Acción Ejecutada: ${rep.accion}\n📌 Estado: ${rep.estado}`;
+            navigator.clipboard.writeText(texto);
+            alert('¡Estructura de reporte copiada al portapapeles con éxito!');
+        }
+
+        // 4. MÓDULO WIKI: LÓGICA Y RENDER
+        function toggleFormWiki() {
+            const f = document.getElementById('form-nueva-solucion');
+            f.classList.toggle('hidden');
+        }
+
+        function guardarNuevaSolucion() {
+            const titulo = document.getElementById('wiki-titulo').value.trim();
+            const categoria = document.getElementById('wiki-cat').value.trim();
+            const descripcion = document.getElementById('wiki-desc').value.trim();
+            const pasos = document.getElementById('wiki-pasos').value.trim();
+            const comando = document.getElementById('wiki-cmd').value.trim();
+            const tagsInput = document.getElementById('wiki-tags').value;
+
+            if (!titulo || !descripcion || !pasos) {
+                alert('Por favor completa Título, Descripción y Pasos de la solución.');
+                return;
+            }
+
+            const tags = tagsInput.split(',').map(t => t.trim().toLowerCase()).filter(t => t !== '');
+            const nuevaSol = { titulo, categoria: categoria || 'General', descripcion, pasos, comando, tags };
+
+            wikiSoluciones.unshift(nuevaSol);
+            localStorage.setItem('tic_wiki', JSON.stringify(wikiSoluciones));
+
+            // Limpiar formulario
+            document.getElementById('wiki-titulo').value = '';
+            document.getElementById('wiki-cat').value = '';
+            document.getElementById('wiki-desc').value = '';
+            document.getElementById('wiki-pasos').value = '';
+            document.getElementById('wiki-cmd').value = '';
+            document.getElementById('wiki-tags').value = '';
+
+            toggleFormWiki();
+            renderizarWiki();
+        }
+
+        function renderizarWiki() {
+            const query = document.getElementById('wiki-search').value.toLowerCase();
+            const lista = document.getElementById('lista-wiki');
+
+            const filtrados = wikiSoluciones.filter(s => 
+                s.titulo.toLowerCase().includes(query) || 
+                s.descripcion.toLowerCase().includes(query) ||
+                s.tags.some(t => t.includes(query))
+            );
+
+            if (filtrados.length === 0) {
+                lista.innerHTML = `<p class="text-xs text-slate-500">No se encontraron soluciones con ese criterio de búsqueda.</p>`;
+                return;
+            }
+
+            lista.innerHTML = filtrados.map((item, idx) => {
+                const bloqueComando = item.comando ? `
+                    <div class="flex items-center justify-between bg-black/40 p-2.5 rounded text-xs font-mono border border-slate-800 text-emerald-400 overflow-x-auto mt-2">
+                        <code>${item.comando}</code>
+                        <button onclick="navigator.clipboard.writeText('${item.comando}'); alert('Comando copiado');" class="text-[#38bdf8] hover:underline ml-4 font-sans text-[11px] font-bold">Copiar</button>
+                    </div>
+                ` : '';
+
+                const bloqueTags = item.tags.map(t => `<span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">#${t}</span>`).join(' ');
+
+                return `
+                    <div class="bg-card-custom border border-slate-700 p-5 rounded-xl space-y-3 shadow-lg">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-xs font-semibold text-[#38bdf8] bg-[#38bdf8]/10 px-2.5 py-1 rounded-full border border-[#38bdf8]/20">${item.categoria}</span>
+                                <h3 class="text-base font-bold text-slate-100 mt-2">${item.titulo}</h3>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-400">${item.descripcion}</p>
+                        <div class="text-xs text-slate-300 bg-[#0f172a] p-3 rounded border border-slate-800 whitespace-pre-line">
+                            <strong class="text-[#38bdf8]">Procedimiento Técnico:</strong>\n${item.pasos}
+                        </div>
+                        ${bloqueComando}
+                        <div class="flex flex-wrap gap-1.5 pt-1">
+                            ${bloqueTags}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Ejecutar verificación de seguridad al cargar la página
+        window.onload = verificarSesion;
+    </script>
 </body>
 </html>
