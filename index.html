@@ -581,5 +581,16 @@ function eliminarReporte(index) {
 
         window.onload = verificarSesion;
     </script>
+    <input type="text" id="datoUsuario" placeholder="Escribe algo...">
+<button onclick="enviarDatos()">Guardar</button>
+
+<script>
+function enviarDatos() {
+    let valor = document.getElementById("datoUsuario").value;
+    // Esto envía el dato a tu servidor local
+    fetch('/guardar?texto=' + encodeURIComponent(valor))
+    .then(() => alert("Guardado en la Canaima"));
+}
+</script>
 </body>
 </html>
