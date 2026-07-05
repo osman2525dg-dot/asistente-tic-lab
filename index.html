@@ -610,51 +610,6 @@ function eliminarReporte(index) {
         </div>
     `).join('');
 }
-        // cheklist
-        <section id="sec-tareas" class="hidden space-y-6">
-    <h1 class="text-3xl font-black">Tareas Pendientes</h1>
-    <div class="bg-card-custom p-6 rounded-xl border border-slate-700 grid grid-cols-1 md:grid-cols-4 gap-4">
-        <input type="text" id="tarea-titulo" placeholder="¿Qué hay que hacer?" class="col-span-2 bg-[#0f172a] border border-slate-600 p-2 rounded">
-        <select id="tarea-prioridad" class="bg-[#0f172a] border border-slate-600 p-2 rounded">
-            <option value="Urgente" class="text-red-400">🔥 Urgente</option>
-            <option value="Moderado" class="text-yellow-400">⚡ Moderado</option>
-            <option value="Bajo" class="text-green-400">✅ Bajo</option>
-        </select>
-        <button onclick="agregarTarea()" class="bg-[#38bdf8] text-[#0f172a] font-bold rounded">Crear Tarea</button>
-    </div>
-    <div id="lista-tareas" class="space-y-3"></div>
-</section>
-        // logica cheklist
-        let tareasPendientes = JSON.parse(localStorage.getItem('tic_tareas')) || [];
-
-function agregarTarea() {
-    const titulo = document.getElementById('tarea-titulo').value;
-    const prioridad = document.getElementById('tarea-prioridad').value;
-    
-    if(!titulo) return;
-    
-    tareasPendientes.push({
-        titulo,
-        prioridad,
-        fecha: new Date().toLocaleDateString(),
-        completada: false
-    });
-    
-    localStorage.setItem('tic_tareas', JSON.stringify(tareasPendientes));
-    renderizarTareas();
-}
-
-function renderizarTareas() {
-    document.getElementById('lista-tareas').innerHTML = tareasPendientes.map((t, index) => `
-        <div class="flex items-center justify-between bg-card-custom p-4 rounded-xl border-l-4 ${t.prioridad === 'Urgente' ? 'border-red-500' : 'border-blue-500'}">
-            <div>
-                <h3 class="font-bold">${t.titulo}</h3>
-                <span class="text-xs text-slate-400">Asignado: ${t.fecha} | Prioridad: ${t.prioridad}</span>
-            </div>
-            <button onclick="eliminarTarea(${index})" class="text-red-400 hover:text-red-600">Eliminar</button>
-        </div>
-    `).join('');
-}
     </script>
 </body>
 </html>
