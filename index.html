@@ -565,6 +565,14 @@ function eliminarReporte(index) {
             toggleFormWiki();
             renderizarWiki();
         }
+        function eliminarWiki(index) {
+    if(confirm("¿Estás seguro de eliminar esta solución de la base de conocimiento?")) {
+        wikiSoluciones.splice(index, 1);
+        localStorage.setItem('tic_wiki', JSON.stringify(wikiSoluciones));
+        mostrarToast("Solución eliminada");
+        renderizarWiki();
+    }
+}
         function renderizarWiki() {
             const query = document.getElementById('wiki-search').value.toLowerCase();
             const filtrados = wikiSoluciones.filter(s => s.titulo.toLowerCase().includes(query) || s.descripcion.toLowerCase().includes(query));
@@ -580,6 +588,28 @@ function eliminarReporte(index) {
         }
 
         window.onload = verificarSesion;
+        function renderizarWiki() {
+    const query = document.getElementById('wiki-search').value.toLowerCase();
+    const filtrados = wikiSoluciones.filter(s => 
+        s.titulo.toLowerCase().includes(query) || 
+        s.descripcion.toLowerCase().includes(query)
+    );
+    
+    document.getElementById('lista-wiki').innerHTML = wikiSoluciones.map((item, index) => `
+        <div class="bg-[#0f172a] border border-slate-700 p-5 rounded-xl shadow-lg relative group">
+            <!-- BOTÓN ELIMINAR -->
+            <button onclick="eliminarWiki(${index})" class="absolute top-4 right-4 text-slate-600 hover:text-red-500 transition opacity-0 group-hover:opacity-100">
+                Eliminar
+            </button>
+            
+            <span class="text-[10px] font-bold text-slate-400 border border-slate-700 px-2 py-0.5 rounded-full mb-2 inline-block">${item.categoria}</span>
+            <h3 class="text-lg font-black text-white mb-1">${item.titulo}</h3>
+            <p class="text-sm text-slate-300 mb-3">${item.descripcion}</p>
+            <div class="bg-card-custom p-3 rounded-lg border border-slate-600/50 mb-3 text-sm text-slate-200 whitespace-pre-line">${item.pasos}</div>
+            ${item.comando ? `<div class="bg-black text-emerald-400 font-mono text-xs p-3 rounded-lg flex justify-between items-center"><code>${item.comando}</code><button onclick="navigator.clipboard.writeText('${item.comando}'); mostrarToast('Comando copiado')" class="text-[#38bdf8] font-bold text-xs ml-2 hover:underline">Copiar</button></div>` : ''}
+        </div>
+    `).join('');
+}
     </script>
 </body>
 </html>
